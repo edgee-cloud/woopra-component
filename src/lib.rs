@@ -230,14 +230,14 @@ mod tests {
             "fr".to_string(),
             true,
         );
-        let settings = vec![("your-credentials".to_string(), "abc".to_string())];
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
         let result = Component::page(event, settings);
 
         assert_eq!(result.is_err(), false);
         let edgee_request = result.unwrap();
-        assert_eq!(edgee_request.method, HttpMethod::Post);
+        assert_eq!(edgee_request.method, HttpMethod::Get);
         assert_eq!(edgee_request.body.is_empty(), true);
-        assert_eq!(edgee_request.url.starts_with("https://example.com/"), true);
+        assert_eq!(edgee_request.url.starts_with("https://www.woopra.com"), true);
         // add more checks (headers, querystring, etc.)
     }
 }
