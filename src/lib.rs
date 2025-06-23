@@ -237,7 +237,10 @@ mod tests {
         let edgee_request = result.unwrap();
         assert_eq!(edgee_request.method, HttpMethod::Get);
         assert_eq!(edgee_request.body.is_empty(), true);
-        assert_eq!(edgee_request.url.starts_with("https://www.woopra.com"), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
         // add more checks (headers, querystring, etc.)
     }
 }
