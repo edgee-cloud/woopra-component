@@ -6,11 +6,16 @@ version = "1.0.0"
 
 category = "data-collection"
 subcategory = "analytics"
-description = "Example Rust component for data collection"
-documentation = "https://github.com/edgee-cloud/example-rust-component"
-repository = "https://github.com/edgee-cloud/example-rust-component"
+documentation = "https://github.com/edgee-cloud/woopra-component"
+repository = "https://github.com/edgee-cloud/woopra-component"
 language = "Rust"
 wit-version = "1.0.0"
+icon-path = "woopra-icon.png"
+description = '''
+This component enables seamless integration between [Edgee](https://www.edgee.cloud)
+and [Woopra](https://www.woopra.com/),
+allowing you to collect and forward analytics events to your Woopra project.
+'''
 
 [component.build]
 command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && mv ./target/wasm32-wasip2/release/woopra_component.wasm ./woopra.wasm"
