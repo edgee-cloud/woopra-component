@@ -80,7 +80,7 @@ impl Guest for Component {
                     .map_err(|e| e.to_string())?,
             )
         } else {
-            Err("Missing track data".to_string())
+            Err("Missing user data".to_string())
         }
     }
 }
