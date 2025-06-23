@@ -1,0 +1,23 @@
+manifest-version = 1
+
+[component]
+name = "woopra-component"
+version = "1.0.0"
+
+category = "data-collection"
+subcategory = "analytics"
+description = "Example Rust component for data collection"
+documentation = "https://github.com/edgee-cloud/example-rust-component"
+repository = "https://github.com/edgee-cloud/example-rust-component"
+language = "Rust"
+wit-version = "1.0.0"
+
+[component.build]
+command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && mv ./target/wasm32-wasip2/release/woopra_component.wasm ./woopra.wasm"
+output_path = "woopra.wasm"
+
+[component.settings.project_name]
+title = "Project Name"
+type = "string"
+description = "Your Woopra Project Name (e.g. 'mywebsite.com')"
+required = true
