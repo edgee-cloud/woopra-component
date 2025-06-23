@@ -3,12 +3,17 @@ use std::collections::HashMap;
 
 use crate::exports::edgee::components::data_collection::Event;
 
+// documentation: https://docs.woopra.com/reference/track-ce
+// this struct is only used with Page and Track events
 #[derive(Serialize, Debug, Default)]
 pub(crate) struct WoopraPayloadTrack {
+    // only these 3 fields are required
     project: String,
     event: String,
     timestamp: String,
 
+    // all properties are prefixed with "cv_" (visitor), "ce_" (event), "cs_" (session)
+    // and need to be serialized as flattened maps
     #[serde(
         skip_serializing_if = "HashMap::is_empty",
         serialize_with = "serialize_cv_prefixed",
@@ -28,6 +33,7 @@ pub(crate) struct WoopraPayloadTrack {
     )]
     session_properties: HashMap<String, String>,
 
+    // all the other fields are optional
     #[serde(skip_serializing_if = "Option::is_none")]
     screen: Option<String>, // e.g. "1920x1080"
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -48,23 +54,26 @@ pub(crate) struct WoopraPayloadTrack {
     #[serde(skip_serializing_if = "Option::is_none")]
     app: Option<String>,
 }
+
 impl WoopraPayloadTrack {
     pub(crate) fn new(edgee_event: &Event, project: String, event: String) -> anyhow::Result<Self> {
         let mut payload = WoopraPayloadTrack {
             event,
             project,
-            app: Some("Edgee".to_string()),
+            app: Some("Edgee".to_string()), // custom app value (like a special SDK)
             timestamp: edgee_event.timestamp.to_string(),
             ..WoopraPayloadTrack::default()
         };
 
-        // context.page stuff
+        // add properties from context.page
         payload.add_page_properties(&edgee_event.context.page);
 
+        // language/locale
         if !edgee_event.context.client.locale.is_empty() {
             payload.language = Some(edgee_event.context.client.locale.clone());
         }
 
+        // user agent
         if !edgee_event
             .context
             .client
@@ -80,6 +89,7 @@ impl WoopraPayloadTrack {
             );
         }
 
+        // OS name and version
         if !edgee_event.context.client.os_name.is_empty() {
             if !edgee_event.context.client.os_version.is_empty() {
                 payload.os = Some(format!(
@@ -92,6 +102,7 @@ impl WoopraPayloadTrack {
             }
         }
 
+        // screen size
         if edgee_event.context.client.screen_width.is_positive()
             && edgee_event.context.client.screen_height.is_positive()
         {
@@ -102,7 +113,7 @@ impl WoopraPayloadTrack {
             ));
         }
 
-        // user
+        // user ids
         if !edgee_event.context.user.anonymous_id.is_empty() {
             payload.visitor_properties.insert(
                 "anonymous_id".to_string(),
@@ -125,20 +136,18 @@ impl WoopraPayloadTrack {
             }
         }
 
-        // geo ip
+        // country code & IP address
         if !edgee_event.context.client.country_code.is_empty() {
             payload.visitor_properties.insert(
                 "country".to_string(),
                 edgee_event.context.client.country_code.clone(),
             );
         }
-
-        // ip address
         if !edgee_event.context.client.ip.is_empty() {
             payload.ip = Some(edgee_event.context.client.ip.clone());
         }
 
-        // session
+        // session id and count
         payload.session_properties.insert(
             "session_id".to_string(),
             edgee_event.context.session.session_id.clone(),
@@ -179,7 +188,7 @@ impl WoopraPayloadTrack {
         }
     }
 
-    // this method can be used to add user properties to the payload (from event.data or context.user)
+    // this method can be used to add track properties to the payload (from event.data)
     pub(crate) fn add_track_properties(
         &mut self,
         data: &crate::exports::edgee::components::data_collection::TrackData,
@@ -194,10 +203,15 @@ impl WoopraPayloadTrack {
     }
 }
 
+// documentation: https://docs.woopra.com/reference/track-identify
+// this struct is only used with User events
 #[derive(Serialize, Debug, Default)]
 pub(crate) struct WoopraPayloadIdentify {
+    // this is the only required field
     project: String,
 
+    // visitor properties are prefixed with "cv_" (visitor)
+    // and need to be serialized as flattened maps
     #[serde(
         skip_serializing_if = "HashMap::is_empty",
         serialize_with = "serialize_cv_prefixed",
@@ -205,12 +219,15 @@ pub(crate) struct WoopraPayloadIdentify {
     )]
     visitor_properties: HashMap<String, String>,
 
+    // default identifier (could be cv_email too)
     #[serde(skip_serializing_if = "Option::is_none")]
-    cv_id: Option<String>, // default identifier (could be cv_email too)
+    cv_id: Option<String>,
 
+    // optional cookie id (required only if no other identifier is provided)
     #[serde(skip_serializing_if = "Option::is_none")]
-    cookie: Option<String>, // optional cookie id (required only if no other identifier is provided)
+    cookie: Option<String>,
 }
+
 impl WoopraPayloadIdentify {
     pub(crate) fn new(edgee_event: &Event, project: String) -> anyhow::Result<Self> {
         let mut payload = WoopraPayloadIdentify {
@@ -218,7 +235,7 @@ impl WoopraPayloadIdentify {
             ..WoopraPayloadIdentify::default()
         };
 
-        // context.user stuff
+        // add properties from context.user
         payload.add_user_properties(&edgee_event.context.user);
 
         // geo ip
