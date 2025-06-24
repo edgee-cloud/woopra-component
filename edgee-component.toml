@@ -6,7 +6,7 @@ version = "1.0.0"
 
 category = "data-collection"
 subcategory = "analytics"
-documentation = "https://github.com/edgee-cloud/woopra-component"
+documentation = "https://www.edgee.cloud/docs/components/data-collection/woopra"
 repository = "https://github.com/edgee-cloud/woopra-component"
 language = "Rust"
 wit-version = "1.0.0"
