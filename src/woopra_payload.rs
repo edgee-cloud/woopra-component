@@ -306,18 +306,14 @@ where
     prefixed_map.serialize(serializer)
 }
 
-// Helper function to serialize HashMap with "ce_" prefix
+// Helper function to serialize HashMap with "cs_" prefix
 fn serialize_cs_prefixed<S>(map: &HashMap<String, String>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
     let mut prefixed_map: HashMap<String, String> = HashMap::new();
     for (key, value) in map.iter() {
-        let prefixed_key = if key.starts_with("cs_") {
-            key.clone()
-        } else {
-            format!("cs_{}", key)
-        };
+        let prefixed_key = format!("cs_{}", key);
         prefixed_map.insert(prefixed_key, value.clone());
     }
     prefixed_map.serialize(serializer)

@@ -122,7 +122,7 @@ mod tests {
     use super::*;
 
     use crate::exports::edgee::components::data_collection::{
-        Campaign, Client, Context, Data, EventType, PageData, Session, UserData,
+        Campaign, Client, Context, Data, EventType, PageData, Session, TrackData, UserData,
     };
     use exports::edgee::components::data_collection::Consent;
     use pretty_assertions::assert_eq;
@@ -140,6 +140,27 @@ mod tests {
         }
     }
 
+    fn sample_user_data_without_properties(edgee_id: String) -> UserData {
+        UserData {
+            user_id: "123".to_string(),
+            anonymous_id: "456".to_string(),
+            edgee_id,
+            properties: vec![],
+        }
+    }
+
+    fn sample_user_data_with_cv_properties(edgee_id: String) -> UserData {
+        UserData {
+            user_id: "123".to_string(),
+            anonymous_id: "456".to_string(),
+            edgee_id,
+            properties: vec![
+                ("prop_name".to_string(), "value1".to_string()), // will be prefixed with cv_
+                ("cv_prop_ok".to_string(), "10".to_string()),    // won't be prefixed with cv_
+            ],
+        }
+    }
+
     fn sample_context(edgee_id: String, locale: String, session_start: bool) -> Context {
         Context {
             page: sample_page_data(),
@@ -150,12 +171,12 @@ mod tests {
                 locale,
                 timezone: "CET".to_string(),
                 user_agent: "Chrome".to_string(),
-                user_agent_architecture: "x86".to_string(),
+                user_agent_architecture: "unknown".to_string(),
                 user_agent_bitness: "64".to_string(),
                 user_agent_full_version_list: "abc".to_string(),
                 user_agent_version_list: "abc".to_string(),
                 user_agent_mobile: "mobile".to_string(),
-                user_agent_model: "don't know".to_string(),
+                user_agent_model: "unknown".to_string(),
                 os_name: "MacOS".to_string(),
                 os_version: "latest".to_string(),
                 screen_width: 1024,
@@ -204,6 +225,37 @@ mod tests {
         }
     }
 
+    fn sample_track_data(event_name: String) -> TrackData {
+        return TrackData {
+            name: event_name,
+            products: vec![],
+            properties: vec![
+                ("prop1".to_string(), "value1".to_string()),
+                ("prop2".to_string(), "10".to_string()),
+                ("currency".to_string(), "USD".to_string()),
+            ],
+        };
+    }
+
+    fn sample_track_data_without_properties(event_name: String) -> TrackData {
+        return TrackData {
+            name: event_name,
+            products: vec![],
+            properties: vec![],
+        };
+    }
+
+    fn sample_track_data_with_already_prefixed_properties(event_name: String) -> TrackData {
+        return TrackData {
+            name: event_name,
+            products: vec![],
+            properties: vec![
+                ("prop_name".to_string(), "value1".to_string()),
+                ("ce_prop_ok".to_string(), "10".to_string()),
+            ],
+        };
+    }
+
     fn sample_page_event(
         consent: Option<Consent>,
         edgee_id: String,
@@ -220,6 +272,83 @@ mod tests {
             context: sample_context(edgee_id, locale, session_start),
             consent,
         }
+    }
+
+    fn sample_track_event(
+        event_name: String,
+        consent: Option<Consent>,
+        edgee_id: String,
+        locale: String,
+        session_start: bool,
+    ) -> Event {
+        return Event {
+            uuid: Uuid::new_v4().to_string(),
+            timestamp: 123,
+            timestamp_millis: 123,
+            timestamp_micros: 123,
+            event_type: EventType::Track,
+            data: Data::Track(sample_track_data(event_name)),
+            context: sample_context(edgee_id, locale, session_start),
+            consent: consent,
+        };
+    }
+
+    fn sample_track_event_without_properties(
+        event_name: String,
+        consent: Option<Consent>,
+        edgee_id: String,
+        locale: String,
+        session_start: bool,
+    ) -> Event {
+        return Event {
+            uuid: Uuid::new_v4().to_string(),
+            timestamp: 123,
+            timestamp_millis: 123,
+            timestamp_micros: 123,
+            event_type: EventType::Track,
+            data: Data::Track(sample_track_data_without_properties(event_name)),
+            context: sample_context(edgee_id, locale, session_start),
+            consent: consent,
+        };
+    }
+
+    fn sample_track_event_with_already_prefixed_properties(
+        event_name: String,
+        consent: Option<Consent>,
+        edgee_id: String,
+        locale: String,
+        session_start: bool,
+    ) -> Event {
+        return Event {
+            uuid: Uuid::new_v4().to_string(),
+            timestamp: 123,
+            timestamp_millis: 123,
+            timestamp_micros: 123,
+            event_type: EventType::Track,
+            data: Data::Track(sample_track_data_with_already_prefixed_properties(
+                event_name,
+            )),
+            context: sample_context(edgee_id, locale, session_start),
+            consent: consent,
+        };
+    }
+
+    fn sample_user_event(
+        consent: Option<Consent>,
+        edgee_id: String,
+        locale: String,
+        session_start: bool,
+    ) -> Event {
+        return Event {
+            uuid: Uuid::new_v4().to_string(),
+            timestamp: 123,
+            timestamp_millis: 123,
+            timestamp_micros: 123,
+            event_type: EventType::User,
+            data: Data::User(sample_user_data_without_properties(edgee_id.clone())),
+            context: sample_context(edgee_id, locale, session_start),
+            consent: consent,
+        };
     }
 
     #[test]
@@ -241,6 +370,209 @@ mod tests {
             edgee_request.url.starts_with("https://www.woopra.com"),
             true
         );
-        // add more checks (headers, querystring, etc.)
+        assert_eq!(edgee_request.url.contains("?"), true); // querystring
+        assert_eq!(edgee_request.url.contains("project="), true); // query param
+    }
+
+    #[test]
+    fn track_works_fine() {
+        let event = sample_track_event(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+        assert_eq!(edgee_request.url.contains("?"), true); // querystring
+        assert_eq!(edgee_request.url.contains("project="), true); // query param
+    }
+
+    #[test]
+    fn user_works_fine() {
+        let event = sample_user_event(
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+        let result = Component::user(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+        assert_eq!(edgee_request.url.contains("?"), true); // querystring
+        assert_eq!(edgee_request.url.contains("project="), true); // query param
+    }
+
+    #[test]
+    fn track_event_without_client_os_version() {
+        let mut event = sample_track_event(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+
+        // remove the client OS version to simulate a missing property
+        event.context.client.os_version = String::new();
+
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+    }
+
+    #[test]
+    fn track_event_without_client_os_name() {
+        let mut event = sample_track_event(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+
+        // remove the client OS version to simulate a missing property
+        event.context.client.os_name = String::new();
+
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+    }
+
+    #[test]
+    fn track_event_without_context_user_properties() {
+        let mut event = sample_track_event(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+
+        // remove user properties
+        event.context.user.properties = vec![];
+
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+    }
+
+    #[test]
+    fn track_event_with_empty_properties() {
+        let event = sample_track_event_without_properties(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+    }
+
+    #[test]
+    fn track_event_with_already_prefixed_properties() {
+        let event = sample_track_event_with_already_prefixed_properties(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+        assert_eq!(edgee_request.url.contains("ce_prop_name="), true); // query param
+        assert_eq!(edgee_request.url.contains("ce_prop_ok="), true); // query param
+        assert_eq!(edgee_request.url.contains("ce_ce_prop_ok="), false); // query param
+    }
+
+    #[test]
+    fn user_event_with_already_prefixed_properties() {
+        let mut event = sample_user_event(
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![("project_name".to_string(), "example.com".to_string())];
+
+        event.data = Data::User(sample_user_data_with_cv_properties("abc".to_string()));
+
+        let result = Component::user(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Get);
+        assert_eq!(edgee_request.body.is_empty(), true);
+        assert_eq!(
+            edgee_request.url.starts_with("https://www.woopra.com"),
+            true
+        );
+        assert_eq!(edgee_request.url.contains("?"), true); // querystring
+        assert_eq!(edgee_request.url.contains("cv_prop_name="), true); // query param
+        assert_eq!(edgee_request.url.contains("cv_prop_ok="), true); // query param
+        assert_eq!(edgee_request.url.contains("cv_cv_prop_ok="), false); // query param
     }
 }
