@@ -9,8 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1.0.86"
 serde = { version = "1.0.204", features = ["derive"] }
-serde_qs = "0.13.0"
-wit-bindgen = "0.41.0"
+serde_qs = "0.15.0"
+wit-bindgen = "0.42.1"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
