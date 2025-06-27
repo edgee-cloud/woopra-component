@@ -90,7 +90,7 @@ fn build_edgee_request(querystring: String, endpoint: String) -> anyhow::Result<
 
     Ok(EdgeeRequest {
         method: HttpMethod::Get,
-        url: format!("{}{}?{}", WOOPRA_HOST, endpoint, querystring),
+        url: format!("{WOOPRA_HOST}{endpoint}?{querystring}"),
         headers,
         forward_client_headers: true,
         body: String::new(),
