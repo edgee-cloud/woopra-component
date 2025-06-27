@@ -184,7 +184,7 @@ impl WoopraPayloadTrack {
         for (key, value) in page.properties.iter() {
             let key = key.replace(" ", "_");
             self.event_properties
-                .insert(format!("page_{}", key), value.to_string());
+                .insert(format!("page_{key}"), value.to_string());
         }
     }
 
@@ -282,7 +282,7 @@ where
         let prefixed_key = if key.starts_with("cv_") {
             key.clone()
         } else {
-            format!("cv_{}", key)
+            format!("cv_{key}")
         };
         prefixed_map.insert(prefixed_key, value.clone());
     }
@@ -299,7 +299,7 @@ where
         let prefixed_key = if key.starts_with("ce_") {
             key.clone()
         } else {
-            format!("ce_{}", key)
+            format!("ce_{key}")
         };
         prefixed_map.insert(prefixed_key, value.clone());
     }
@@ -313,7 +313,7 @@ where
 {
     let mut prefixed_map: HashMap<String, String> = HashMap::new();
     for (key, value) in map.iter() {
-        let prefixed_key = format!("cs_{}", key);
+        let prefixed_key = format!("cs_{key}");
         prefixed_map.insert(prefixed_key, value.clone());
     }
     prefixed_map.serialize(serializer)
