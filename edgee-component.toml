@@ -18,7 +18,7 @@ allowing you to collect and forward analytics events to your Woopra project.
 '''
 
 [component.build]
-command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && mv ./target/wasm32-wasip2/release/woopra_component.wasm ./woopra.wasm"
+command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && rm -f ./woopra.wasm && mv ./target/wasm32-wasip2/release/woopra_component.wasm ./woopra.wasm"
 output_path = "woopra.wasm"
 
 [component.settings.project_name]
