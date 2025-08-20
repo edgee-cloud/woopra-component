@@ -12,10 +12,6 @@ language = "Rust"
 wit-version = "1.0.0"
 icon-path = "woopra-icon.png"
 description = '''
-# Woopra Component
-
-[https://www.edgee.cloud/edgee/woopra](https://www.edgee.cloud/edgee/woopra)
-
 ## Overview
 
 The **Woopra** component by Edgee enables seamless integration of Woopra's customer journey analytics into your Edgee projects.
