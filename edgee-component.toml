@@ -12,9 +12,45 @@ language = "Rust"
 wit-version = "1.0.0"
 icon-path = "woopra-icon.png"
 description = '''
-This component enables seamless integration between [Edgee](https://www.edgee.cloud)
-and [Woopra](https://www.woopra.com/),
-allowing you to collect and forward analytics events to your Woopra project.
+## Overview
+
+The **Woopra** component by Edgee enables seamless integration of Woopra's customer journey analytics into your Edgee projects.
+This component allows you to collect and forward analytics events to your Woopra project directly from the edge, enhancing performance and privacy by eliminating the need to load the Woopra script on your website.
+
+---
+
+## Key Features & Benefits
+
+### Features
+
+- **Edge Deployment**: Collects and forwards analytics events from the edge, reducing latency and improving performance.
+- **Event Mapping**:
+  - `Page` → `pv` (Page View)
+  - `Track` → Custom event name
+  - `User` → User identification
+- **Privacy-Focused**: No third-party script needed—better privacy and compliance.
+- **Easy Integration**: Plug-and-play setup with existing Edgee flows.
+
+### Benefits
+
+- **Faster Load Times**: No client-side scripts to slow down your page.
+- **Improved Tracking Performance**: Edge-native event handling.
+- **Simple Setup**: Minimal configuration needed.
+- **Privacy by Design**: Aligns with GDPR, CCPA, and modern data handling policies.
+
+---
+
+## Use Cases
+
+- **Full-Funnel Customer Insight**: Map out user journeys from first contact to retention.
+- **Performance-First Analytics**: Get rich insights without adding JS bloat.
+- **Ad Blocker Resistance**: Ensure consistent tracking even with blockers enabled.
+- **Privacy and Compliance**: Comply with user consent and privacy preferences.
+- **Unified Analytics Stack**: Sync behavioral data across tools using Woopra's integrations.
+
+---
+
+Additional resources: [Woopra](https://www.woopra.com/)
 '''
 
 [component.build]
