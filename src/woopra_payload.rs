@@ -175,8 +175,8 @@ impl WoopraPayloadTrack {
                 .insert("title".to_string(), page.title.clone());
         }
         if !page.url.is_empty() {
-            let uri = format!("{}{}", page.url.clone(), page.search.clone());
-            self.event_properties.insert("uri".to_string(), uri);
+            self.event_properties
+                .insert("uri".to_string(), page.url.clone());
         }
         if !page.referrer.is_empty() {
             self.referer = Some(page.referrer.clone());
